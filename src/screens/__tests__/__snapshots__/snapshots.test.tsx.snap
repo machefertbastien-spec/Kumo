@@ -1,0 +1,188 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`Snapshot Tests GrowthTabScreen matches snapshot with no baby 1`] = `null`;
+
+exports[`Snapshot Tests SleepPlannerScreen matches snapshot with no prediction 1`] = `
+<RCTSafeAreaView
+  style={
+    {
+      "backgroundColor": "#FBF8F2",
+      "flex": 1,
+    }
+  }
+>
+  <RCTScrollView
+    contentContainerStyle={
+      {
+        "padding": 16,
+      }
+    }
+  >
+    <View>
+      <Text
+        style={
+          {
+            "color": "#1A1A1A",
+            "fontSize": 22,
+            "fontWeight": "900",
+            "marginBottom": 16,
+          }
+        }
+      >
+        SleepPlanner
+      </Text>
+      <View
+        style={
+          [
+            {
+              "backgroundColor": "#FFFFFF",
+              "borderColor": "#ECECEC",
+              "borderRadius": 20,
+              "borderWidth": 1,
+              "elevation": 2,
+              "shadowColor": "#000",
+              "shadowOffset": {
+                "height": 6,
+                "width": 0,
+              },
+              "shadowOpacity": 0.06,
+              "shadowRadius": 16,
+            },
+            {
+              "marginBottom": 16,
+              "padding": 16,
+            },
+          ]
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "justifyContent": "space-between",
+              "marginBottom": 16,
+            }
+          }
+        >
+          <Text
+            style={
+              {
+                "color": "#1A1A1A",
+                "fontSize": 18,
+                "fontWeight": "900",
+              }
+            }
+          >
+            🌙 SleepPlanner
+          </Text>
+        </View>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "paddingVertical": 20,
+            }
+          }
+        >
+          <Text
+            style={
+              {
+                "fontSize": 48,
+                "marginBottom": 12,
+              }
+            }
+          >
+            📊
+          </Text>
+          <Text
+            style={
+              {
+                "color": "#1A1A1A",
+                "fontSize": 16,
+                "fontWeight": "800",
+                "marginBottom": 8,
+              }
+            }
+          >
+            Pas encore de prédiction
+          </Text>
+          <Text
+            style={
+              {
+                "color": "#7A7A7A",
+                "fontSize": 14,
+                "lineHeight": 20,
+                "textAlign": "center",
+              }
+            }
+          >
+            Enregistrez quelques dodos pour voir les créneaux idéaux
+          </Text>
+        </View>
+      </View>
+      <View
+        style={
+          [
+            {
+              "backgroundColor": "#FFFFFF",
+              "borderColor": "#ECECEC",
+              "borderRadius": 20,
+              "borderWidth": 1,
+              "elevation": 2,
+              "padding": 16,
+              "shadowColor": "#000",
+              "shadowOffset": {
+                "height": 1,
+                "width": 0,
+              },
+              "shadowOpacity": 0.05,
+              "shadowRadius": 3,
+            },
+            {
+              "marginTop": 16,
+              "padding": 16,
+            },
+          ]
+        }
+      >
+        <Text
+          style={
+            {
+              "color": "#1A1A1A",
+              "fontSize": 16,
+              "fontWeight": "800",
+              "marginBottom": 8,
+            }
+          }
+        >
+          💡 Comment ça marche ?
+        </Text>
+        <Text
+          style={
+            {
+              "color": "#7A7A7A",
+              "fontSize": 14,
+              "lineHeight": 20,
+            }
+          }
+        >
+          SleepPlanner analyse les habitudes de sommeil de votre bébé sur les 7 derniers jours pour prédire le meilleur moment pour la prochaine sieste ou le coucher.
+        </Text>
+        <Text
+          style={
+            {
+              "color": "#7A7A7A",
+              "fontSize": 14,
+              "lineHeight": 20,
+              "marginTop": 8,
+            }
+          }
+        >
+          Plus vous enregistrez de dodos, plus les prédictions seront précises !
+        </Text>
+      </View>
+    </View>
+  </RCTScrollView>
+</RCTSafeAreaView>
+`;
