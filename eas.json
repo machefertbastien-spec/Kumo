@@ -21,7 +21,7 @@
       "autoIncrement": true,
       "ios": {
         "simulator": false,
-        "image": "macos-sequoia-15.4-xcode-16.3"
+        "image": "latest"
       }
     }
   },
