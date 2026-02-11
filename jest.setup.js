@@ -29,13 +29,17 @@ jest.mock('expo-notifications', () => ({
   setNotificationHandler: jest.fn(),
 }));
 
+const mockAsyncStorage = {
+  getItem: jest.fn(() => Promise.resolve(null)),
+  setItem: jest.fn(() => Promise.resolve()),
+  removeItem: jest.fn(() => Promise.resolve()),
+  clear: jest.fn(() => Promise.resolve()),
+};
+
 jest.mock('@react-native-async-storage/async-storage', () => ({
-  default: {
-    getItem: jest.fn(),
-    setItem: jest.fn(),
-    removeItem: jest.fn(),
-    clear: jest.fn(),
-  },
+  __esModule: true,
+  default: mockAsyncStorage,
+  ...mockAsyncStorage,
 }));
 
 jest.mock('expo-clipboard', () => ({
@@ -44,6 +48,26 @@ jest.mock('expo-clipboard', () => ({
 }));
 
 jest.mock('@react-native-community/datetimepicker', () => 'DateTimePicker');
+
+// Mock navigation hooks used by header/screens in unit tests
+jest.mock('@react-navigation/native', () => {
+  const actual = jest.requireActual('@react-navigation/native');
+  const mockNavigation = {
+    navigate: jest.fn(),
+    goBack: jest.fn(),
+    canGoBack: jest.fn(() => true),
+    popToTop: jest.fn(),
+    getParent: jest.fn(() => ({ navigate: jest.fn() })),
+    setOptions: jest.fn(),
+    dispatch: jest.fn(),
+  };
+
+  return {
+    ...actual,
+    useNavigation: jest.fn(() => mockNavigation),
+    useFocusEffect: jest.fn((callback) => callback()),
+  };
+});
 
 // Mock react-native-heroicons
 jest.mock('react-native-heroicons/outline', () => ({
@@ -62,4 +86,4 @@ jest.mock('react-native-heroicons/outline', () => ({
   ShareIcon: 'ShareIcon',
   SwatchIcon: 'SwatchIcon',
   ArrowTrendingUpIcon: 'ArrowTrendingUpIcon',
-}));
+}), { virtual: true });

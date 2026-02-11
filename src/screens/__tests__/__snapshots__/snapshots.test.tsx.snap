@@ -1,9 +1,17 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Snapshot Tests GrowthTabScreen matches snapshot with no baby 1`] = `null`;
 
 exports[`Snapshot Tests SleepPlannerScreen matches snapshot with no prediction 1`] = `
-<RCTSafeAreaView
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "additive",
+    }
+  }
   style={
     {
       "backgroundColor": "#FBF8F2",
@@ -35,12 +43,12 @@ exports[`Snapshot Tests SleepPlannerScreen matches snapshot with no prediction 1
         style={
           [
             {
-              "backgroundColor": "#FFFFFF",
-              "borderColor": "#ECECEC",
+              "backgroundColor": "#FBF8F6",
+              "borderColor": "#EFE7E1",
               "borderRadius": 20,
               "borderWidth": 1,
               "elevation": 2,
-              "shadowColor": "#000",
+              "shadowColor": "#4B3F39",
               "shadowOffset": {
                 "height": 6,
                 "width": 0,
@@ -68,7 +76,7 @@ exports[`Snapshot Tests SleepPlannerScreen matches snapshot with no prediction 1
           <Text
             style={
               {
-                "color": "#1A1A1A",
+                "color": "#4B3F39",
                 "fontSize": 18,
                 "fontWeight": "900",
               }
@@ -98,7 +106,7 @@ exports[`Snapshot Tests SleepPlannerScreen matches snapshot with no prediction 1
           <Text
             style={
               {
-                "color": "#1A1A1A",
+                "color": "#4B3F39",
                 "fontSize": 16,
                 "fontWeight": "800",
                 "marginBottom": 8,
@@ -110,7 +118,7 @@ exports[`Snapshot Tests SleepPlannerScreen matches snapshot with no prediction 1
           <Text
             style={
               {
-                "color": "#7A7A7A",
+                "color": "#7A6A60",
                 "fontSize": 14,
                 "lineHeight": 20,
                 "textAlign": "center",
@@ -131,7 +139,7 @@ exports[`Snapshot Tests SleepPlannerScreen matches snapshot with no prediction 1
               "borderWidth": 1,
               "elevation": 2,
               "padding": 16,
-              "shadowColor": "#000",
+              "shadowColor": "#1A1A1A",
               "shadowOffset": {
                 "height": 1,
                 "width": 0,
@@ -184,5 +192,5 @@ exports[`Snapshot Tests SleepPlannerScreen matches snapshot with no prediction 1
       </View>
     </View>
   </RCTScrollView>
-</RCTSafeAreaView>
+</RNCSafeAreaView>
 `;

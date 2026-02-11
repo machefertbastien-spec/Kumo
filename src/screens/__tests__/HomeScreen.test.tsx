@@ -1,9 +1,7 @@
-import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+﻿import React from 'react';
 import { renderWithProviders } from '../../test-utils';
 import { HomeScreen } from '../HomeScreen';
 
-// Mock the date-fns functions
 jest.mock('date-fns', () => ({
   format: jest.fn(() => '22 janvier 2026'),
   startOfDay: jest.fn((date) => {
@@ -20,6 +18,13 @@ jest.mock('date-fns/locale', () => ({
   fr: {},
 }));
 
+jest.mock('../../components/sheets', () => ({
+  AddSleepSheet: () => null,
+  AddFeedingSheet: () => null,
+  AddDiaperSheet: () => null,
+  EventActionSheet: () => null,
+}));
+
 describe('HomeScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -27,14 +32,18 @@ describe('HomeScreen', () => {
 
   it('renders without crashing', () => {
     const { getByText } = renderWithProviders(<HomeScreen nowMs={Date.now()} />);
-    // Just check that it renders - Context providers will supply default data
-    expect(getByText).toBeTruthy();
+    expect(getByText(/Comment va/)).toBeTruthy();
   });
 
   it('displays quick action tiles', () => {
     const { getAllByText } = renderWithProviders(<HomeScreen nowMs={Date.now()} />);
-    expect(getAllByText('Dodo').length).toBeGreaterThan(0);
-    expect(getAllByText('Repas').length).toBeGreaterThan(0);
-    expect(getAllByText('Couche').length).toBeGreaterThan(0);
+    expect(getAllByText(/Sommeil/i).length).toBeGreaterThan(0);
+    expect(getAllByText(/Biber/).length).toBeGreaterThan(0);
+    expect(getAllByText(/Couch/).length).toBeGreaterThan(0);
+  });
+
+  it('shows empty activities state when there is no event', () => {
+    const { getByText } = renderWithProviders(<HomeScreen nowMs={Date.now()} />);
+    expect(getByText(/Aucune activit/i)).toBeTruthy();
   });
 });
