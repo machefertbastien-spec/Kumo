@@ -3,7 +3,7 @@
  * Bottom sheet for adding new growth measurements
  */
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -20,9 +20,9 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { parseISODate, toLocalDateInputValue } from '../../../utils/dateUtils';
-import type { Metric, MeasurementSource } from '../types';
+import type { Metric, Measurement } from '../types';
 import { METRIC_LABELS, METRIC_UNITS, VALIDATION_BOUNDS } from '../types';
-import { addMeasurement } from '../storage/measurementsRepo';
+import { addMeasurement, updateMeasurement } from '../storage/measurementsRepo';
 import { isValidMeasurement } from '../math/growthMath';
 
 const THEME = {
@@ -40,19 +40,55 @@ interface AddMeasurementSheetProps {
   visible: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  initialMeasurement?: Measurement | null;
+  defaultType?: Metric;
 }
 
-export function AddMeasurementSheet({ childId, visible, onClose, onSuccess }: AddMeasurementSheetProps) {
-  const [type, setType] = useState<Metric>('weight');
+export function AddMeasurementSheet({
+  childId,
+  visible,
+  onClose,
+  onSuccess,
+  initialMeasurement = null,
+  defaultType = 'weight',
+}: AddMeasurementSheetProps) {
+  const [type, setType] = useState<Metric>(defaultType);
   const [value, setValue] = useState('');
   const [measuredAt, setMeasuredAt] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [source, setSource] = useState<MeasurementSource>('home');
   const [note, setNote] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const isEditing = Boolean(initialMeasurement);
 
   const bounds = VALIDATION_BOUNDS[type];
+
+  useEffect(() => {
+    if (!visible) return;
+
+    setError('');
+    setSaving(false);
+    setShowDatePicker(false);
+
+    if (initialMeasurement) {
+      setType(initialMeasurement.type);
+      setValue(String(initialMeasurement.value));
+      setMeasuredAt(new Date(initialMeasurement.measuredAt));
+      setNote(initialMeasurement.note ?? '');
+      return;
+    }
+
+    setType(defaultType);
+    setValue('');
+    setMeasuredAt(new Date());
+    setNote('');
+  }, [visible, initialMeasurement, defaultType]);
+
+  const handleClose = () => {
+    setShowDatePicker(false);
+    setError('');
+    onClose();
+  };
 
   const handleSave = async () => {
     setError('');
@@ -65,22 +101,38 @@ export function AddMeasurementSheet({ childId, visible, onClose, onSuccess }: Ad
     }
 
     if (!isValidMeasurement(numValue, bounds.min, bounds.max)) {
-      setError(`La valeur doit être entre ${bounds.min} et ${bounds.max} ${METRIC_UNITS[type]}`);
+      setError(`La valeur doit etre entre ${bounds.min} et ${bounds.max} ${METRIC_UNITS[type]}`);
       return;
     }
 
     try {
       setSaving(true);
-      await addMeasurement(
-        childId,
-        type,
-        numValue,
-        measuredAt.toISOString(),
-        source,
-        note.trim() || undefined
-      );
+      if (isEditing && initialMeasurement) {
+        const updated = await updateMeasurement(
+          childId,
+          initialMeasurement.id,
+          {
+            value: numValue,
+            measuredAt: measuredAt.toISOString(),
+            note: note.trim() || undefined,
+          }
+        );
+
+        if (!updated) {
+          setError('Mesure introuvable');
+          return;
+        }
+      } else {
+        await addMeasurement(
+          childId,
+          type,
+          numValue,
+          measuredAt.toISOString(),
+          note.trim() || undefined
+        );
+      }
       onSuccess();
-      onClose();
+      handleClose();
     } catch (err) {
       console.error('[AddMeasurementSheet] Failed to save:', err);
       setError('Impossible de sauvegarder la mesure');
@@ -94,40 +146,46 @@ export function AddMeasurementSheet({ childId, visible, onClose, onSuccess }: Ad
       visible={visible}
       animationType="slide"
       transparent={true}
-      onRequestClose={onClose}
+      onRequestClose={handleClose}
     >
       <KeyboardAvoidingView
         style={styles.backdrop}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={0}
       >
-        <Pressable style={styles.backdropTouchable} onPress={onClose} />
+        <Pressable style={styles.backdropTouchable} onPress={handleClose} />
         <View style={styles.sheetContainer}>
           <SafeAreaView style={styles.container} edges={['bottom']}>
             <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
               {/* Header */}
               <View style={styles.header}>
-          <Text style={styles.title}>Nouvelle mesure</Text>
-          <Pressable onPress={onClose} hitSlop={10}>
-            <Text style={styles.closeButton}>✕</Text>
+          <Text style={styles.title}>{isEditing ? 'Modifier la mesure' : 'Nouvelle mesure'}</Text>
+          <Pressable onPress={handleClose} hitSlop={10}>
+            <Text style={styles.closeButton}>X</Text>
           </Pressable>
         </View>
 
         {/* Type Selector */}
         <Text style={styles.label}>Type de mesure</Text>
-        <View style={styles.typeSelector}>
-          {(['weight', 'length'] as Metric[]).map(t => (
-            <Pressable
-              key={t}
-              style={[styles.typeButton, type === t && styles.typeButtonActive]}
-              onPress={() => setType(t)}
-            >
-              <Text style={[styles.typeText, type === t && styles.typeTextActive]}>
-                {METRIC_LABELS[t]}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
+        {isEditing ? (
+          <View style={styles.dateButton}>
+            <Text style={styles.dateButtonText}>{METRIC_LABELS[type]}</Text>
+          </View>
+        ) : (
+          <View style={styles.typeSelector}>
+            {(['weight', 'length'] as Metric[]).map(t => (
+              <Pressable
+                key={t}
+                style={[styles.typeButton, type === t && styles.typeButtonActive]}
+                onPress={() => setType(t)}
+              >
+                <Text style={[styles.typeText, type === t && styles.typeTextActive]}>
+                  {METRIC_LABELS[t]}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        )}
 
         {/* Value Input */}
         <Text style={styles.label}>
@@ -197,31 +255,10 @@ export function AddMeasurementSheet({ childId, visible, onClose, onSuccess }: Ad
           </View>
         )}
 
-        {/* Source */}
-        <Text style={styles.label}>Source</Text>
-        <View style={styles.sourceSelector}>
-          <Pressable
-            style={[styles.sourceButton, source === 'home' && styles.sourceButtonActive]}
-            onPress={() => setSource('home')}
-          >
-            <Text style={[styles.sourceText, source === 'home' && styles.sourceTextActive]}>
-              🏠 Maison
-            </Text>
-          </Pressable>
-          <Pressable
-            style={[styles.sourceButton, source === 'doctor' && styles.sourceButtonActive]}
-            onPress={() => setSource('doctor')}
-          >
-            <Text style={[styles.sourceText, source === 'doctor' && styles.sourceTextActive]}>
-              👨‍⚕️ Pédiatre
-            </Text>
-          </Pressable>
-        </View>
-
         {/* Error */}
         {error ? (
           <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>⚠️ {error}</Text>
+            <Text style={styles.errorText}>Erreur: {error}</Text>
           </View>
         ) : null}
             </ScrollView>
@@ -230,7 +267,7 @@ export function AddMeasurementSheet({ childId, visible, onClose, onSuccess }: Ad
             <View style={styles.actions}>
               <Pressable
                 style={[styles.button, styles.cancelButton]}
-                onPress={onClose}
+                onPress={handleClose}
                 disabled={saving}
               >
                 <Text style={styles.cancelButtonText}>Annuler</Text>
@@ -241,7 +278,7 @@ export function AddMeasurementSheet({ childId, visible, onClose, onSuccess }: Ad
                 disabled={saving}
               >
                 <Text style={styles.saveButtonText}>
-                  {saving ? 'Enregistrement...' : 'Enregistrer'}
+                  {saving ? 'Enregistrement...' : isEditing ? 'Mettre a jour' : 'Enregistrer'}
                 </Text>
               </Pressable>
             </View>
@@ -355,31 +392,6 @@ const styles = StyleSheet.create({
   webDatePicker: {
     marginTop: 8,
   },
-  sourceSelector: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  sourceButton: {
-    flex: 1,
-    paddingVertical: 14,
-    backgroundColor: THEME.card,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: THEME.border,
-    alignItems: 'center',
-  },
-  sourceButtonActive: {
-    backgroundColor: THEME.primary + '20',
-    borderColor: THEME.primary,
-  },
-  sourceText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: THEME.text,
-  },
-  sourceTextActive: {
-    color: THEME.primary,
-  },
   errorContainer: {
     backgroundColor: '#FFEBEE',
     borderRadius: 12,
@@ -425,5 +437,3 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
 });
-
-

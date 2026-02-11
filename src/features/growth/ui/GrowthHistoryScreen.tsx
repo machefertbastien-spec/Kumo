@@ -201,14 +201,6 @@ function MeasurementCard({ item, showDelta, onDelete, formatPercentile }: Measur
         </View>
       </View>
 
-      {measurement.source && (
-        <View style={styles.cardFooter}>
-          <Text style={styles.cardSource}>
-            {measurement.source === 'doctor' ? '👨‍⚕️ Pédiatre' : '🏠 Maison'}
-          </Text>
-        </View>
-      )}
-
       {measurement.note && (
         <View style={styles.cardNote}>
           <Text style={styles.cardNoteText}>💬 {measurement.note}</Text>
@@ -347,16 +339,6 @@ const styles = StyleSheet.create({
   },
   statNegative: {
     color: THEME.red,
-  },
-  cardFooter: {
-    marginTop: 12,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: THEME.border,
-  },
-  cardSource: {
-    fontSize: 13,
-    color: THEME.muted,
   },
   cardNote: {
     marginTop: 8,

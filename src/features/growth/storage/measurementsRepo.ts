@@ -58,7 +58,6 @@ export async function addMeasurement(
   type: Metric,
   value: number,
   measuredAt: string,
-  source?: 'home' | 'doctor',
   note?: string
 ): Promise<Measurement> {
   const measurements = await loadMeasurements(childId);
@@ -70,7 +69,6 @@ export async function addMeasurement(
     type,
     value,
     measuredAt,
-    source,
     note,
     createdAt: now,
     updatedAt: now,
@@ -88,7 +86,7 @@ export async function addMeasurement(
 export async function updateMeasurement(
   childId: string,
   measurementId: string,
-  updates: Partial<Pick<Measurement, 'value' | 'measuredAt' | 'source' | 'note'>>
+  updates: Partial<Pick<Measurement, 'value' | 'measuredAt' | 'note'>>
 ): Promise<Measurement | null> {
   const measurements = await loadMeasurements(childId);
   const index = measurements.findIndex(m => m.id === measurementId);

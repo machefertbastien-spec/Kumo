@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+﻿import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -37,6 +37,10 @@ function makeId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2);
 }
 
+function normalizeBabyName(text: string): string {
+  return text.replace(/\s+/g, ' ').trim();
+}
+
 export default function OnboardingScreen() {
   const { onCreateBaby } = useBaby();
 
@@ -48,12 +52,12 @@ export default function OnboardingScreen() {
   const [month, setMonth] = useState("");
   const [year, setYear] = useState("");
   
-  // Step 2: Prénom et sexe (à implémenter)
+  // Step 2: PrÃ©nom et sexe (Ã  implÃ©menter)
   const [name, setName] = useState("");
   const [sex, setSex] = useState<'male' | 'female' | null>(null);
-  const [avatar, setAvatar] = useState("👶");
+  const [avatar, setAvatar] = useState("ðŸ‘¶");
   
-  // Step 3: Poids et taille (à implémenter)
+  // Step 3: Poids et taille (Ã  implÃ©menter)
   const [weight, setWeight] = useState("");
   const [height, setHeight] = useState("");
   
@@ -65,6 +69,8 @@ export default function OnboardingScreen() {
   const yearRef = useRef<TextInput>(null);
 
   const canContinueStep1 = day.length === 2 && month.length === 2 && year.length === 4;
+  const normalizedName = normalizeBabyName(name);
+  const canContinueStep2 = normalizedName.length >= 2;
 
   const handleDayChange = (text: string) => {
     const cleaned = text.replace(/[^0-9]/g, '');
@@ -108,6 +114,12 @@ export default function OnboardingScreen() {
     }
   };
 
+  const handleContinueStep2 = () => {
+    if (canContinueStep2) {
+      setStep(3);
+    }
+  };
+
   const renderStep1 = () => (
     <KeyboardAvoidingView 
       style={{ flex: 1 }} 
@@ -120,7 +132,7 @@ export default function OnboardingScreen() {
           contentContainerStyle={{ flexGrow: 1 }}
           keyboardShouldPersistTaps="handled"
         >
-          <OnboardingSteps currentStep={1} totalSteps={5} />
+          <OnboardingSteps currentStep={1} totalSteps={6} />
 
           <View style={{ alignItems: 'center', marginTop: 16 }}>
             <Image 
@@ -138,7 +150,7 @@ export default function OnboardingScreen() {
               textAlign: 'center',
               marginBottom: 32,
             }}>
-              Quelle est la date de naissance{'\n'}de votre bébé ?
+              Quelle est la date de naissance{'\n'}de votre bÃ©bÃ© ?
             </Text>
 
             <View style={{ 
@@ -264,7 +276,134 @@ export default function OnboardingScreen() {
             fontSize: 11,
             color: THEME.muted,
           }}>
-            Ces informations nous aident simplement à mieux vous accompagner.
+            Ces informations nous aident simplement Ã  mieux vous accompagner.
+          </Text>
+        </View>
+      </View>
+    </KeyboardAvoidingView>
+  );
+
+  const renderStep2Name = () => (
+    <KeyboardAvoidingView 
+      style={{ flex: 1 }} 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+    >
+      <View style={{ flex: 1 }}>
+        <ScrollView 
+          style={{ flex: 1 }}
+          contentContainerStyle={{ flexGrow: 1 }}
+          keyboardShouldPersistTaps="handled"
+        >
+          <OnboardingSteps currentStep={2} totalSteps={6} />
+
+          <View style={{ alignItems: 'center', marginTop: 16 }}>
+            <Image 
+              source={require('../../assets/Header.png')} 
+              style={{ width: 120, height: 120, marginBottom: 8 }}
+              resizeMode="contain"
+            />
+            <Text style={{ fontSize: 12, color: THEME.muted }}>
+              Naissance de votre bebe
+            </Text>
+          </View>
+
+          <View style={{ flex: 1, justifyContent: 'center', paddingHorizontal: 24, minHeight: 200 }}>
+            <Text style={{ 
+              fontSize: 18, 
+              fontWeight: '600', 
+              color: THEME.text,
+              textAlign: 'center',
+              marginBottom: 32,
+            }}>
+              Quel est le prenom de votre enfant ?
+            </Text>
+
+            <View style={{ alignItems: 'center' }}>
+              <TextInput
+                value={name}
+                onChangeText={(text) => setName(text.replace(/\s+/g, ' '))}
+                placeholder="Ex: Emma"
+                autoCapitalize="words"
+                autoCorrect={false}
+                maxLength={30}
+                style={{
+                  width: '100%',
+                  height: 56,
+                  borderRadius: 12,
+                  borderWidth: 1,
+                  borderColor: THEME.line,
+                  backgroundColor: THEME.card,
+                  fontSize: 18,
+                  fontWeight: '600',
+                  textAlign: 'center',
+                  color: THEME.text,
+                  paddingHorizontal: 16,
+                }}
+              />
+              {name.length > 0 && !canContinueStep2 && (
+                <Text style={{ marginTop: 8, fontSize: 12, color: '#B45309' }}>
+                  Entrez au moins 2 caracteres.
+                </Text>
+              )}
+            </View>
+          </View>
+        </ScrollView>
+
+        {/* Boutons fixes en bas */}
+        <View style={{ paddingHorizontal: 24, paddingBottom: 24, paddingTop: 12, backgroundColor: THEME.bg }}>
+          <View style={{ flexDirection: 'row', gap: 12 }}>
+            <Pressable
+              onPress={() => setStep(1)}
+              style={({ pressed }) => ({
+                flex: 1,
+                paddingVertical: 16,
+                borderRadius: 12,
+                backgroundColor: pressed ? THEME.line : THEME.card,
+                borderWidth: 1,
+                borderColor: THEME.line,
+              })}
+            >
+              <Text style={{ 
+                color: THEME.text, 
+                textAlign: 'center', 
+                fontWeight: '600',
+                fontSize: 16,
+              }}>
+                Retour
+              </Text>
+            </Pressable>
+
+            <Pressable
+              onPress={handleContinueStep2}
+              disabled={!canContinueStep2}
+              style={({ pressed }) => ({
+                flex: 1,
+                paddingVertical: 16,
+                borderRadius: 12,
+                backgroundColor: canContinueStep2
+                  ? (pressed ? '#C67952' : THEME.primary)
+                  : THEME.line,
+              })}
+            >
+              <Text style={{ 
+                color: THEME.card, 
+                textAlign: 'center', 
+                fontWeight: '600',
+                fontSize: 16,
+              }}>
+                Continuer
+              </Text>
+            </Pressable>
+          </View>
+
+          <Text style={{ 
+            marginTop: 16,
+            textAlign: 'center',
+            fontSize: 11,
+            color: THEME.muted,
+          }}>
+            Ces informations nous aident simplement a mieux vous accompagner.
           </Text>
         </View>
       </View>
@@ -283,7 +422,7 @@ export default function OnboardingScreen() {
           contentContainerStyle={{ flexGrow: 1 }}
           keyboardShouldPersistTaps="handled"
         >
-          <OnboardingSteps currentStep={2} totalSteps={5} />
+          <OnboardingSteps currentStep={3} totalSteps={6} />
 
           <View style={{ alignItems: 'center', marginTop: 16 }}>
             <Image 
@@ -292,7 +431,7 @@ export default function OnboardingScreen() {
               resizeMode="contain"
             />
             <Text style={{ fontSize: 12, color: THEME.muted }}>
-              Naissance de votre bébé
+              Naissance de votre bÃ©bÃ©
             </Text>
           </View>
 
@@ -304,7 +443,7 @@ export default function OnboardingScreen() {
               textAlign: 'center',
               marginBottom: 32,
             }}>
-              Quelle est la taille{'\n'}de votre bébé ?
+              Quelle est la taille{'\n'}de votre bÃ©bÃ© ?
             </Text>
 
             <View style={{ alignItems: 'center' }}>
@@ -340,7 +479,7 @@ export default function OnboardingScreen() {
         <View style={{ paddingHorizontal: 24, paddingBottom: 24, paddingTop: 12, backgroundColor: THEME.bg }}>
           <View style={{ flexDirection: 'row', gap: 12 }}>
             <Pressable
-              onPress={() => setStep(1)}
+              onPress={() => setStep(2)}
               style={({ pressed }) => ({
                 flex: 1,
                 paddingVertical: 16,
@@ -361,7 +500,7 @@ export default function OnboardingScreen() {
             </Pressable>
 
             <Pressable
-              onPress={() => setStep(3)}
+              onPress={() => setStep(4)}
               disabled={!height}
               style={({ pressed }) => ({
                 flex: 1,
@@ -389,7 +528,7 @@ export default function OnboardingScreen() {
             fontSize: 11,
             color: THEME.muted,
           }}>
-            Ces informations nous aident simplement à mieux vous accompagner.
+            Ces informations nous aident simplement Ã  mieux vous accompagner.
           </Text>
         </View>
       </View>
@@ -408,7 +547,7 @@ export default function OnboardingScreen() {
           contentContainerStyle={{ flexGrow: 1 }}
           keyboardShouldPersistTaps="handled"
         >
-          <OnboardingSteps currentStep={3} totalSteps={5} />
+          <OnboardingSteps currentStep={4} totalSteps={6} />
 
           <View style={{ alignItems: 'center', marginTop: 16 }}>
             <Image 
@@ -417,7 +556,7 @@ export default function OnboardingScreen() {
               resizeMode="contain"
             />
             <Text style={{ fontSize: 12, color: THEME.muted }}>
-              Naissance de votre bébé
+              Naissance de votre bÃ©bÃ©
             </Text>
           </View>
 
@@ -429,7 +568,7 @@ export default function OnboardingScreen() {
               textAlign: 'center',
               marginBottom: 32,
             }}>
-              Quel est le poids{'\n'}de votre bébé ?
+              Quel est le poids{'\n'}de votre bÃ©bÃ© ?
             </Text>
 
             <View style={{ alignItems: 'center' }}>
@@ -465,7 +604,7 @@ export default function OnboardingScreen() {
         <View style={{ paddingHorizontal: 24, paddingBottom: 24, paddingTop: 12, backgroundColor: THEME.bg }}>
           <View style={{ flexDirection: 'row', gap: 12 }}>
             <Pressable
-              onPress={() => setStep(2)}
+              onPress={() => setStep(3)}
               style={({ pressed }) => ({
                 flex: 1,
                 paddingVertical: 16,
@@ -486,7 +625,7 @@ export default function OnboardingScreen() {
             </Pressable>
 
             <Pressable
-              onPress={() => setStep(4)}
+              onPress={() => setStep(5)}
               disabled={!weight}
               style={({ pressed }) => ({
                 flex: 1,
@@ -514,7 +653,7 @@ export default function OnboardingScreen() {
             fontSize: 11,
             color: THEME.muted,
           }}>
-            Ces informations nous aident simplement à mieux vous accompagner.
+            Ces informations nous aident simplement Ã  mieux vous accompagner.
           </Text>
         </View>
       </View>
@@ -523,7 +662,7 @@ export default function OnboardingScreen() {
 
   const renderStep4 = () => (
     <View style={{ flex: 1 }}>
-      <OnboardingSteps currentStep={4} totalSteps={5} />
+      <OnboardingSteps currentStep={5} totalSteps={6} />
 
       <View style={{ alignItems: 'center', marginTop: 16 }}>
         <Image 
@@ -532,7 +671,7 @@ export default function OnboardingScreen() {
           resizeMode="contain"
         />
         <Text style={{ fontSize: 12, color: THEME.muted }}>
-          Naissance de votre bébé
+          Naissance de votre bÃ©bÃ©
         </Text>
       </View>
 
@@ -544,7 +683,7 @@ export default function OnboardingScreen() {
           textAlign: 'center',
           marginBottom: 32,
         }}>
-          Quel est le sexe de votre bébé ?
+          Quel est le sexe de votre bÃ©bÃ© ?
         </Text>
 
         <View style={{ gap: 12 }}>
@@ -586,7 +725,7 @@ export default function OnboardingScreen() {
               fontWeight: '600', 
               color: THEME.text,
             }}>
-              Garçon
+              GarÃ§on
             </Text>
           </Pressable>
         </View>
@@ -595,7 +734,7 @@ export default function OnboardingScreen() {
       <View style={{ paddingHorizontal: 24, paddingBottom: 24 }}>
         <View style={{ flexDirection: 'row', gap: 12 }}>
           <Pressable
-            onPress={() => setStep(3)}
+            onPress={() => setStep(4)}
             style={({ pressed }) => ({
               flex: 1,
               paddingVertical: 16,
@@ -616,7 +755,7 @@ export default function OnboardingScreen() {
           </Pressable>
 
           <Pressable
-            onPress={() => setStep(5)}
+            onPress={() => setStep(6)}
             disabled={!sex}
             style={({ pressed }) => ({
               flex: 1,
@@ -644,7 +783,7 @@ export default function OnboardingScreen() {
           fontSize: 11,
           color: THEME.muted,
         }}>
-          Ces informations nous aident simplement à mieux vous accompagner.
+          Ces informations nous aident simplement Ã  mieux vous accompagner.
         </Text>
       </View>
     </View>
@@ -652,7 +791,7 @@ export default function OnboardingScreen() {
 
   const renderStep5 = () => (
     <View style={{ flex: 1 }}>
-      <OnboardingSteps currentStep={5} totalSteps={5} />
+      <OnboardingSteps currentStep={6} totalSteps={6} />
 
       <View style={{ alignItems: 'center', marginTop: 16 }}>
         <Image 
@@ -661,7 +800,7 @@ export default function OnboardingScreen() {
           resizeMode="contain"
         />
         <Text style={{ fontSize: 12, color: THEME.muted }}>
-          Naissance de votre bébé
+          Naissance de votre bÃ©bÃ©
         </Text>
       </View>
 
@@ -673,7 +812,7 @@ export default function OnboardingScreen() {
           textAlign: 'center',
           marginBottom: 32,
         }}>
-          Et vous, qui êtes-vous pour ce bébé ?
+          Et vous, qui Ãªtes-vous pour ce bÃ©bÃ© ?
         </Text>
 
         <View style={{ gap: 12 }}>
@@ -808,7 +947,7 @@ export default function OnboardingScreen() {
       <View style={{ paddingHorizontal: 24, paddingBottom: 24 }}>
         <View style={{ flexDirection: 'row', gap: 12 }}>
           <Pressable
-            onPress={() => setStep(4)}
+            onPress={() => setStep(5)}
             style={({ pressed }) => ({
               flex: 1,
               paddingVertical: 16,
@@ -830,9 +969,7 @@ export default function OnboardingScreen() {
 
           <Pressable
             onPress={async () => {
-              if (!name.trim()) {
-                setName('Bébé');
-              }
+              const finalName = normalizedName.length >= 2 ? normalizedName : 'Bebe';
               const birthDate = new Date(
                 parseInt(year),
                 parseInt(month) - 1,
@@ -845,7 +982,7 @@ export default function OnboardingScreen() {
               
               await onCreateBaby({
                 id: babyId,
-                name: name.trim() || 'Bébé',
+                name: finalName,
                 birthDateISO: toLocalDateInputValue(birthDate),
                 avatar,
                 sex,
@@ -857,16 +994,16 @@ export default function OnboardingScreen() {
               console.log('[Onboarding] Baby created with ID:', babyId);
               console.log('[Onboarding] Weight:', weightValue, 'Height:', heightValue);
               
-              // Sauvegarder les mesures initiales dans le système de croissance
+              // Sauvegarder les mesures initiales dans le systÃ¨me de croissance
               const measuredAt = birthDate.toISOString();
               if (weightValue) {
                 console.log('[Onboarding] Saving weight measurement...');
-                await addMeasurement(babyId, 'weight', weightValue, measuredAt, 'home');
+                await addMeasurement(babyId, 'weight', weightValue, measuredAt);
                 console.log('[Onboarding] Weight measurement saved!');
               }
               if (heightValue) {
                 console.log('[Onboarding] Saving height measurement...');
-                await addMeasurement(babyId, 'length', heightValue, measuredAt, 'home');
+                await addMeasurement(babyId, 'length', heightValue, measuredAt);
                 console.log('[Onboarding] Height measurement saved!');
               }
             }}
@@ -894,7 +1031,7 @@ export default function OnboardingScreen() {
           fontSize: 11,
           color: THEME.muted,
         }}>
-          Ces informations nous aident simplement à mieux vous accompagner.
+          Ces informations nous aident simplement Ã  mieux vous accompagner.
         </Text>
       </View>
     </View>
@@ -903,11 +1040,13 @@ export default function OnboardingScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: THEME.bg }}>
       {step === 1 && renderStep1()}
-      {step === 2 && renderStep2()}
-      {step === 3 && renderStep3()}
-      {step === 4 && renderStep4()}
-      {step === 5 && renderStep5()}
+      {step === 2 && renderStep2Name()}
+      {step === 3 && renderStep2()}
+      {step === 4 && renderStep3()}
+      {step === 5 && renderStep4()}
+      {step === 6 && renderStep5()}
     </SafeAreaView>
   );
 }
+
 

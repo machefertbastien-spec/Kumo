@@ -6,15 +6,12 @@
 export type Sex = "female" | "male";
 export type Metric = "weight" | "length" | "headCircumference";
 
-export type MeasurementSource = "home" | "doctor";
-
 export interface Measurement {
   id: string;
   childId: string;
   type: Metric;
   value: number; // kg for weight, cm for length & headCircumference
   measuredAt: string; // ISO datetime
-  source?: MeasurementSource;
   note?: string;
   createdAt: string;
   updatedAt: string;

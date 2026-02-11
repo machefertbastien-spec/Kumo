@@ -27,7 +27,6 @@ export type {
   Sex,
   Metric,
   Measurement,
-  MeasurementSource,
   MeasurementWithStats,
   LMS,
   Bands,
