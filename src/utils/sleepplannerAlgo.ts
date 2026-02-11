@@ -274,10 +274,10 @@ function getTodayTimeMs(hhmmString: string, nowMs: number): number {
  * buildCountdown({earliestMs: now+30m, targetMs: now+60m}, now)
  * // Returns {status: 'too_early', minutesUntil: 60, message: 'Trop tôt • Idéal dans 60 min'}
  */
-function buildCountdown(window: SweetSpotWindow, nowMs: number): SweetSpotResult['countdown'] {
+function buildCountdown(window: SleepPlannerWindow, nowMs: number): SleepPlannerResult['countdown'] {
   const minutesUntil = Math.round((window.targetMs - nowMs) / MIN_MS);
   
-  let status: SweetSpotResult['countdown']['status'];
+  let status: SleepPlannerResult['countdown']['status'];
   let message: string;
   
   if (nowMs < window.earliestMs) {
@@ -439,7 +439,7 @@ export function computeNextSleepPlan(
   
   // 8. Build window
   const halfWidth = settings.windowHalfWidthMin * MIN_MS;
-  const window: SweetSpotWindow = {
+  const window: SleepPlannerWindow = {
     slotIndex: currentSlot,
     slotType: isLastSlot ? 'bedtime' : 'nap',
     earliestMs: targetMs - halfWidth,

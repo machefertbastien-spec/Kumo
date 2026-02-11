@@ -42,6 +42,7 @@ export async function scheduleSleepPlannerNotification(
         },
       },
       trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
         seconds: Math.round((triggerMs - nowMs) / 1000),
       },
     });

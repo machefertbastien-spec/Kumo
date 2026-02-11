@@ -29,6 +29,7 @@ const THEME = {
   bg: '#F7F1EC',
   card: '#FBF8F6',
   text: '#4B3F39',
+  darkGray: '#4B3F39',
   muted: '#7A6A60',
   border: '#EFE7E1',
   green: '#D48A63',

@@ -17,10 +17,12 @@ export function GrowthTabScreen() {
   return (
     <>
       <GrowthChartsScreen
-        childId={baby.id}
-        childDob={baby.birthDateISO}
-        childSex={baby.sex}
-        onAddMeasurement={handleAddMeasurement}
+        baby={{
+          id: baby.id,
+          birthDateISO: baby.birthDateISO,
+          sex: baby.sex,
+        }}
+        onOpenAddMeasurement={handleAddMeasurement}
       />
       <AddMeasurementSheet
         childId={baby.id}

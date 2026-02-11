@@ -52,7 +52,7 @@ export const EventRow = memo(function EventRow({ e, onPress }: {
           marginRight: 12,
         }}
       >
-        <Ionicons name={ico.name} size={18} color={ico.color} />
+        <Ionicons name={ico.name as any} size={18} color={ico.color} />
       </View>
 
       {/* Title and timestamp */}

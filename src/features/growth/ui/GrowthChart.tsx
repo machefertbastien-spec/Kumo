@@ -16,6 +16,7 @@ const THEME = {
   weight: '#D27C57',
   height: '#9FB59B',
   head: '#8FB9C3',
+  card: '#FBF8F6',
   lightGray: '#FBF8F6',
   mediumGray: '#EFE7E1',
   darkGray: '#7A6A60',
@@ -201,7 +202,7 @@ export function GrowthChart({ measurements, bands, metric, childDob }: GrowthCha
                   day: m.ageDays,
                   value: m.measurement.value
                 })))}
-                stroke={metric === 'weight' ? THEME.weight : metric === 'height' ? THEME.height : THEME.head}
+                stroke={metric === 'weight' ? THEME.weight : metric === 'length' ? THEME.height : THEME.head}
                 strokeWidth="2.5"
                 fill="none"
               />
@@ -210,7 +211,7 @@ export function GrowthChart({ measurements, bands, metric, childDob }: GrowthCha
             {/* Measurement points */}
             {measurements.map((m) => {
               const isSelected = selectedMeasurement?.measurement.id === m.measurement.id;
-              const pointColor = metric === 'weight' ? THEME.weight : metric === 'height' ? THEME.height : THEME.head;
+               const pointColor = metric === 'weight' ? THEME.weight : metric === 'length' ? THEME.height : THEME.head;
               return (
                 <G key={m.measurement.id}>
                   <Circle

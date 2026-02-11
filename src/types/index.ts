@@ -156,12 +156,24 @@ export interface ReminderSettings {
  * Toast message for undo functionality
  */
 export interface Toast {
-  /** Toast message text */
-  message: string;
+  /** Whether toast is visible */
+  visible: boolean;
+  /** Toast title text */
+  title?: string;
+  /** Optional subtitle */
+  subtitle?: string;
+  /** ID of the related event */
+  eventId?: string;
+  /** Timestamp when toast was created */
+  createdAtMs?: number;
+  /** Last timestamp where editing is allowed */
+  canEditUntilMs?: number;
+  /** Legacy toast message text */
+  message?: string;
   /** Type of undo action */
-  undoKind: 'delete_event' | 'stop_sleep' | 'edit_event';
+  undoKind?: 'delete_event' | 'reopen_sleep' | 'stop_sleep' | 'edit_event';
   /** Event associated with undo action */
-  event: Event;
+  event?: Event;
   /** Previous event state (for edit undo) */
   previousEvent?: Event;
 }

@@ -40,6 +40,7 @@ import {
   subDays,
 } from "date-fns";
 import { fr } from "date-fns/locale";
+import type { Settings as AppSettings, Toast as AppToast } from "./src/types";
 
 // Growth Charts imports
 import { GrowthChartsScreen, AddMeasurementSheet } from './src/features/growth';
@@ -140,6 +141,8 @@ const Icon: React.FC<IconProps> = ({ name, size = 24, color = "#000", ...props }
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
     shouldPlaySound: false,
     shouldSetBadge: false,
   }),
@@ -183,7 +186,7 @@ const makeId = () => `${Date.now()}_${Math.random().toString(16).slice(2)}`;
 const DEFAULT_SETTINGS = {
   defaultFeedingAmountMl: 120,
   defaultDiaperType: "pee", // pee | poo | mixed
-};
+} as AppSettings;
 
 const DEFAULT_CAREGIVER = {
   id: makeId(),
@@ -415,6 +418,14 @@ const AideStack = createNativeStackNavigator();
 
 // Custom Tab bar (design)
 function CustomTabBar({ state, descriptors, navigation }) {
+  const iconNames = [
+    "home-outline",
+    "lightbulb-outline",
+    "sparkles-outline",
+    "list-outline",
+    "stats-chart-outline",
+  ];
+
   return (
     <View
       style={{
@@ -437,7 +448,7 @@ function CustomTabBar({ state, descriptors, navigation }) {
             ? options.title
             : route.name;
 
-        const iconName = options.tabBarIconName;
+        const iconName = iconNames[index] ?? "ellipse-outline";
 
         const onPress = () => {
           const event = navigation.emit({
@@ -576,23 +587,23 @@ function TabsScreen({ nowMs }) {
 
   return (
     <Tab.Navigator id="MainTabs" tabBar={(p) => <CustomTabBar {...p} />} screenOptions={{ headerShown: false }}>
-      <Tab.Screen name="Bébé" options={{ tabBarIconName: "home-outline" }}>
+      <Tab.Screen name="Bébé">
         {() => <HomeScreen nowMs={nowMs} />}
       </Tab.Screen>
 
-      <Tab.Screen name="Aide" options={{ tabBarIconName: "lightbulb-outline" }}>
+      <Tab.Screen name="Aide">
         {() => <AideStackScreen />}
       </Tab.Screen>
 
-      <Tab.Screen name="Kumo" options={{ tabBarIconName: "sparkles-outline" }}>
+      <Tab.Screen name="Kumo">
         {() => <ChatScreen />}
       </Tab.Screen>
 
-      <Tab.Screen name="Progrès" options={{ tabBarIconName: "list-outline" }}>
-        {() => <MilestonesScreen baby={baby} />}
+      <Tab.Screen name="Progrès">
+        {() => <MilestonesScreen />}
       </Tab.Screen>
 
-      <Tab.Screen name="Suivi" options={{ tabBarIconName: "stats-chart-outline" }}>
+      <Tab.Screen name="Suivi">
         {() => <StatsScreen nowMs={nowMs} />}
       </Tab.Screen>
     </Tab.Navigator>
@@ -609,7 +620,7 @@ function TabsScreen({ nowMs }) {
 export default function App() {
   const [baby, setBaby] = useState(null);
   const [caregiver, setCaregiver] = useState(DEFAULT_CAREGIVER);
-  const [settings, setSettings] = useState(DEFAULT_SETTINGS);
+  const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [events, setEvents] = useState([]);
 
   const [reminderSettings, setReminderSettings] = useState(DEFAULT_REMINDER_SETTINGS);
@@ -646,7 +657,7 @@ export default function App() {
   const [diaperSheetVisible, setDiaperSheetVisible] = useState(false);
 
   // toast undo/correction
-  const [toast, setToast] = useState({ visible: false });
+  const [toast, setToast] = useState<AppToast>({ visible: false });
   const toastTimerRef = useRef(null);
 
   // edit sheet
@@ -934,7 +945,7 @@ export default function App() {
           const seconds = Math.max(5, Math.round((finalFireAtMs - Date.now()) / 1000));
           notificationId = await Notifications.scheduleNotificationAsync({
             content: { title, body },
-            trigger: { seconds },
+            trigger: { type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL, seconds },
           });
         } catch {
           notificationId = null;
@@ -1361,4 +1372,3 @@ export default function App() {
     </SafeAreaProvider>
   );
 }
-

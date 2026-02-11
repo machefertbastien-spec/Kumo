@@ -8,6 +8,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { format } from 'date-fns';
@@ -48,7 +49,7 @@ const Card = ({ children, style }: any) => (
   </View>
 );
 
-export function BabyProfileScreen() {
+export function BabyProfileScreen({ navigation }: any) {
   // Use context hooks
   const { baby, onUpdateBaby } = useBaby();
 
@@ -61,10 +62,63 @@ export function BabyProfileScreen() {
     setBirth(baby?.birthDateISO ? parseISODate(baby.birthDateISO) : new Date());
   }, [baby]);
 
+  const onBack = () => {
+    if (navigation?.canGoBack?.()) {
+      navigation.goBack();
+      return;
+    }
+    if (navigation?.popToTop) {
+      navigation.popToTop();
+      return;
+    }
+    if (navigation?.navigate) {
+      navigation.navigate('SettingsHome');
+      return;
+    }
+    navigation?.getParent?.()?.navigate?.('Settings', { screen: 'SettingsHome' });
+  };
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: THEME.bg }}>
-      <ScrollView contentContainerStyle={{ padding: 16 }}>
-        <Text style={{ fontSize: 22, fontWeight: '900', color: THEME.text }}>Profil</Text>
+    <SafeAreaView style={{ flex: 1, backgroundColor: THEME.bg }} edges={['top', 'left', 'right']}>
+      <View
+        style={{
+          paddingHorizontal: 16,
+          paddingTop: 8,
+          paddingBottom: 8,
+          borderBottomWidth: 1,
+          borderBottomColor: THEME.line,
+          backgroundColor: THEME.bg,
+        }}
+      >
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Pressable
+            onPress={onBack}
+            hitSlop={10}
+            accessibilityRole="button"
+            accessibilityLabel="Retour"
+            style={({ pressed }) => ({
+              minWidth: 44,
+              height: 44,
+              borderRadius: 22,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              paddingHorizontal: 10,
+              opacity: pressed ? 0.7 : 1,
+              marginRight: 8,
+              backgroundColor: THEME.card,
+              borderWidth: 1,
+              borderColor: THEME.line,
+            })}
+          >
+            <Ionicons name="chevron-back" size={20} color={THEME.text} />
+            <Text style={{ marginLeft: 2, fontSize: 14, fontWeight: '700', color: THEME.text }}>Retour</Text>
+          </Pressable>
+          <Text style={{ fontSize: 22, fontWeight: '900', color: THEME.text }}>Profil</Text>
+        </View>
+      </View>
+
+      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 28 }}>
 
         <Card style={{ marginTop: 12, padding: 14 }}>
           <Text style={{ fontWeight: '900', color: THEME.text }}>Prénom</Text>
