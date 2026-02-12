@@ -861,51 +861,6 @@ export default function App() {
   }, [reminders, hydrated]);
 
   const onCreateBaby = async (b) => {
-    // Save initial measurements FIRST if provided
-    if (b.initialWeight || b.initialHeight) {
-      const childId = b.id;
-      const measuredAt = b.birthDateISO;
-      const measurements = [];
-      
-      if (b.initialWeight) {
-        measurements.push({
-          id: makeId(),
-          childId,
-          type: 'weight',
-          value: b.initialWeight,
-          measuredAt,
-          source: 'parent',
-          createdAt: new Date().toISOString(),
-        });
-      }
-      
-      if (b.initialHeight) {
-        measurements.push({
-          id: makeId(),
-          childId,
-          type: 'length',
-          value: b.initialHeight,
-          measuredAt,
-          source: 'parent',
-          createdAt: new Date().toISOString(),
-        });
-      }
-      
-      // Save measurements to AsyncStorage with correct key format
-      try {
-        const storageKey = `growth_measurements_${childId}`;
-        const existingData = await AsyncStorage.getItem(storageKey);
-        const existing = existingData ? JSON.parse(existingData) : [];
-        await AsyncStorage.setItem(storageKey, JSON.stringify([...existing, ...measurements]));
-        console.log('[Onboarding] Initial measurements saved:', measurements.length);
-        // Small delay to ensure persistence
-        await new Promise(resolve => setTimeout(resolve, 100));
-      } catch (error) {
-        console.error('Error saving initial measurements:', error);
-      }
-    }
-    
-    // THEN set the baby (triggers UI update)
     setBaby(b);
   };
   const onUpdateBaby = (b) => setBaby(b);
@@ -1334,32 +1289,7 @@ export default function App() {
                       </RootStack.Screen>
                     )}
                       <RootStack.Screen name="Settings">
-                        {() => (
-                          <SettingsStackScreen
-                            onImport={(text) => {
-                              const parsed = safeParseJson(text);
-                              if (!parsed.ok) {
-                                Alert.alert("Import impossible", parsed.error);
-                                return;
-                              }
-                              const data = parsed.value;
-                              if (!data || typeof data !== "object" || !Array.isArray(data.events)) {
-                                Alert.alert("Import impossible", "Format invalide (events manquants).");
-                                return;
-                              }
-                              Alert.alert("Importer ?", "Fusion des événements (déduplication par id).", [
-                                { text: "Annuler", style: "cancel" },
-                                {
-                                  text: "Importer",
-                                  onPress: () => {
-                                    if (!baby && data.baby) setBaby(data.baby);
-                                    Alert.alert("Import OK", "Données fusionnées.");
-                                  },
-                                },
-                              ]);
-                            }}
-                          />
-                        )}
+                        {() => <SettingsStackScreen onImport={onImport} />}
                       </RootStack.Screen>
                   </RootStack.Navigator>
                 </NavigationContainer>
