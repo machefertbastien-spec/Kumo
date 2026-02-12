@@ -299,8 +299,13 @@ function safeParseJson(text) {
 }
 
 async function loadJson(key, fallback) {
-  const raw = await AsyncStorage.getItem(key);
-  return raw ? JSON.parse(raw) : fallback;
+  try {
+    const raw = await AsyncStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch (error) {
+    console.error(`[Storage] loadJson failed for ${key}:`, error);
+    return fallback;
+  }
 }
 async function saveJson(key, value) {
   await AsyncStorage.setItem(key, JSON.stringify(value));
@@ -1100,14 +1105,6 @@ export default function App() {
     setEditVisible(false);
   };
 
-  if (!hydrated) {
-    return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: THEME.bg, padding: 16 }}>
-        <Text style={{ color: THEME.muted }}>Chargement…</Text>
-      </SafeAreaView>
-    );
-  }
-
   const canEdit = toast?.visible && nowMs <= (toast?.canEditUntilMs ?? 0);
 
   // Prepare context values
@@ -1302,3 +1299,4 @@ export default function App() {
     </SafeAreaProvider>
   );
 }
+
