@@ -1,0 +1,12 @@
+{
+  "name": "kumo-relay",
+  "private": true,
+  "type": "module",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "node kumoRelayServer.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

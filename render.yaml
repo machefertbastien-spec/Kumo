@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: kumo-relay
+    runtime: node
+    rootDir: server
+    buildCommand: npm install --omit=dev
+    startCommand: npm run start
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_MODEL
+        value: gpt-4.1-mini
+      - key: KUMO_VECTOR_STORE_ID
+        sync: false
+      - key: KUMO_RELAY_ORIGIN
+        value: "*"

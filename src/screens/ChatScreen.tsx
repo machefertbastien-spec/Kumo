@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { SFIcon } from '../components/SFIcon';
 import { ScreenHeader } from '../components/ui';
+import { askKumo } from '../services/kumoChat';
+import type { KumoMessage } from '../services/kumoChat';
 
 const THEME = {
   bg: '#F7F1EC',
@@ -28,19 +30,17 @@ interface Message {
   id: string;
   text: string;
   sender: 'bot' | 'user';
-  isTable?: boolean;
-  tableData?: { age: string; hours: string }[];
 }
 
 const SUGGESTED_QUESTIONS = [
-  "Combien d'heures de sommeil un bébé doit-il dormir ?",
-  "Comment savoir si mon bébé a faim ?",
-  "Quelles activités pour stimuler l'éveil de mon bébé ?",
-  "Autre question...",
+  "Combien d'heures de sommeil pour un bebe ?",
+  'Comment reconnaitre les signes de faim ?',
+  "Quelles activites d'eveil selon l'age ?",
+  'Autre question...',
 ];
 
-const WELCOME_MESSAGE = 
-  "Bonjour ! Je suis ici pour répondre à vos questions et vous offrir des conseils sur le sommeil, l'alimentation, le temps d'éveil et tout ce qui concerne votre bébé. Comment puis-je vous aider ?";
+const WELCOME_MESSAGE =
+  "Bonjour, je suis Kumo IA v2. Je peux vous aider sur le sommeil, l'alimentation et l'eveil de votre bebe. Quelle est votre question ?";
 
 export function ChatScreen() {
   const [messages, setMessages] = useState<Message[]>([
@@ -52,22 +52,21 @@ export function ChatScreen() {
   ]);
   const [inputText, setInputText] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(true);
+  const [isSending, setIsSending] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
   const handleSuggestionPress = (question: string) => {
-    if (question === "Autre question...") {
+    if (question === 'Autre question...') {
       setShowSuggestions(false);
       return;
     }
-    
     handleSendMessage(question);
   };
 
-  const handleSendMessage = (text?: string) => {
+  const handleSendMessage = async (text?: string) => {
     const messageText = text || inputText.trim();
-    if (!messageText) return;
+    if (!messageText || isSending) return;
 
-    // Add user message
     const userMessage: Message = {
       id: Date.now().toString(),
       text: messageText,
@@ -77,53 +76,57 @@ export function ChatScreen() {
     setMessages((prev) => [...prev, userMessage]);
     setInputText('');
     setShowSuggestions(false);
+    setIsSending(true);
 
-    // Simulate bot response (you can replace this with actual API call)
-    setTimeout(() => {
-      let botResponse: Message;
+    try {
+      const history: KumoMessage[] = [...messages, userMessage]
+        .slice(-14)
+        .map((m): KumoMessage => ({
+          role: m.sender === 'user' ? 'user' : 'assistant',
+          content: m.text,
+        }));
 
-      if (messageText.toLowerCase().includes('sommeil')) {
-        botResponse = {
-          id: (Date.now() + 1).toString(),
-          text: "La durée du sommeil d'un bébé dépend de son âge. Voici un tableau des durées de sommeil recommandées en fonction de l'âge du bébé :",
-          sender: 'bot',
-          isTable: true,
-          tableData: [
-            { age: '0 - 3 mois', hours: '14 - 17 heures' },
-            { age: '4 - 6 mois', hours: '12 - 15 heures' },
-            { age: '7 - 12 mois', hours: '11 - 14 heures' },
-          ],
-        };
-      } else if (messageText.toLowerCase().includes('faim')) {
-        botResponse = {
-          id: (Date.now() + 1).toString(),
-          text: "Voici quelques signes que votre bébé a faim :\n\n• Il porte ses mains à sa bouche\n• Il tourne la tête à la recherche du sein\n• Il fait des mouvements de succion\n• Il pleure (signe tardif)\n• Il est agité\n\nIl est préférable de nourrir bébé dès les premiers signes plutôt que d'attendre les pleurs.",
-          sender: 'bot',
-        };
-      } else if (messageText.toLowerCase().includes('éveil') || messageText.toLowerCase().includes('activité')) {
-        botResponse = {
-          id: (Date.now() + 1).toString(),
-          text: "Pour stimuler l'éveil de votre bébé, voici quelques activités adaptées :\n\n• Tummy time (temps sur le ventre) pour renforcer les muscles\n• Chansons et comptines pour le langage\n• Livres d'images contrastées\n• Jouets à textures variées\n• Miroir pour se découvrir\n• Promenades pour découvrir le monde\n\nAdaptez toujours les activités à l'âge et au rythme de votre bébé !",
-          sender: 'bot',
-        };
-      } else {
-        botResponse = {
-          id: (Date.now() + 1).toString(),
-          text: "Je suis là pour vous aider avec toutes vos questions sur votre bébé. N'hésitez pas à me demander des conseils sur le sommeil, l'alimentation, le développement ou tout autre sujet qui vous préoccupe !",
-          sender: 'bot',
-        };
-      }
+      const responseText = await askKumo(history);
+      const botMessage: Message = {
+        id: `${Date.now()}_bot`,
+        text: responseText,
+        sender: 'bot',
+      };
+      setMessages((prev) => [...prev, botMessage]);
+    } catch (error: any) {
+      const rawError = String(error?.message || '');
+      const isMissingKey = rawError.includes('OPENAI_API_KEY_MISSING');
+      const isMissingRelayUrl = rawError.includes('KUMO_RELAY_URL_MISSING');
+      const isTimeout = rawError.includes('KUMO_REQUEST_TIMEOUT');
+      const normalizedReason = rawError
+        .replace(/^OPENAI_API_ERROR:\s*/i, '')
+        .replace(/^KUMO_RELAY_ERROR:\s*/i, '')
+        .trim();
+      const fallback = isMissingRelayUrl
+        ? 'Configuration manquante: ajoute EXPO_PUBLIC_KUMO_RELAY_URL pour activer Kumo IA.'
+        : isMissingKey
+          ? 'Configuration manquante: active le relay (EXPO_PUBLIC_KUMO_USE_RELAY=1) ou configure EXPO_PUBLIC_OPENAI_API_KEY en mode direct.'
+          : isTimeout
+            ? 'Kumo ne repond pas pour le moment. Verifiez le serveur relay puis reessayez.'
+          : `Impossible de contacter Kumo. ${normalizedReason || 'Verifiez la connexion puis reessayez.'}`;
 
-      setMessages((prev) => [...prev, botResponse]);
-    }, 800);
+      const botMessage: Message = {
+        id: `${Date.now()}_error`,
+        text: fallback,
+        sender: 'bot',
+      };
+      setMessages((prev) => [...prev, botMessage]);
+    } finally {
+      setIsSending(false);
+    }
   };
 
   useEffect(() => {
-    // Scroll to bottom when messages change
-    setTimeout(() => {
+    const id = setTimeout(() => {
       scrollViewRef.current?.scrollToEnd({ animated: true });
-    }, 100);
-  }, [messages]);
+    }, 80);
+    return () => clearTimeout(id);
+  }, [messages, isSending]);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: THEME.bg }} edges={['top']}>
@@ -132,10 +135,8 @@ export function ChatScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={0}
       >
-        {/* Header with settings button */}
         <ScreenHeader showLogo />
 
-        {/* Messages */}
         <ScrollView
           ref={scrollViewRef}
           style={{ flex: 1 }}
@@ -152,7 +153,6 @@ export function ChatScreen() {
                 marginBottom: 16,
               }}
             >
-              {/* Avatar */}
               {message.sender === 'bot' ? (
                 <View
                   style={{
@@ -180,16 +180,14 @@ export function ChatScreen() {
                     marginLeft: 12,
                   }}
                 >
-                  <Text style={{ fontSize: 20 }}>👤</Text>
+                  <Text style={{ fontSize: 18 }}>U</Text>
                 </View>
               )}
 
-              {/* Message Bubble */}
               <View
                 style={{
                   flex: 1,
-                  backgroundColor:
-                    message.sender === 'bot' ? THEME.botBubble : THEME.userBubble,
+                  backgroundColor: message.sender === 'bot' ? THEME.botBubble : THEME.userBubble,
                   borderRadius: 16,
                   padding: 14,
                   maxWidth: '80%',
@@ -204,105 +202,44 @@ export function ChatScreen() {
                 >
                   {message.text}
                 </Text>
-
-                {/* Table (if exists) */}
-                {message.isTable && message.tableData && (
-                  <View
-                    style={{
-                      marginTop: 12,
-                      backgroundColor: THEME.bg,
-                      borderRadius: 12,
-                      overflow: 'hidden',
-                    }}
-                  >
-                    {/* Table Header */}
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        backgroundColor: THEME.primary,
-                        padding: 10,
-                      }}
-                    >
-                      <Text
-                        style={{
-                          flex: 1,
-                          fontSize: 14,
-                          fontWeight: '700',
-                          color: THEME.card,
-                        }}
-                      >
-                        Âge
-                      </Text>
-                      <Text
-                        style={{
-                          flex: 1,
-                          fontSize: 14,
-                          fontWeight: '700',
-                          color: THEME.card,
-                        }}
-                      >
-                        Durée moyenne de sommeil
-                      </Text>
-                    </View>
-
-                    {/* Table Rows */}
-                    {message.tableData.map((row, index) => (
-                      <View
-                        key={index}
-                        style={{
-                          flexDirection: 'row',
-                          padding: 10,
-                          backgroundColor: index % 2 === 0 ? THEME.card : THEME.bg,
-                        }}
-                      >
-                        <Text
-                          style={{
-                            flex: 1,
-                            fontSize: 13,
-                            color: THEME.text,
-                            fontWeight: '600',
-                          }}
-                        >
-                          {row.age}
-                        </Text>
-                        <Text
-                          style={{
-                            flex: 1,
-                            fontSize: 13,
-                            color: THEME.text,
-                          }}
-                        >
-                          {row.hours}
-                        </Text>
-                      </View>
-                    ))}
-                  </View>
-                )}
-
-                {message.isTable && (
-                  <Text
-                    style={{
-                      fontSize: 13,
-                      color: THEME.muted,
-                      marginTop: 12,
-                      fontStyle: 'italic',
-                    }}
-                  >
-                    Ces chiffres sont des moyennes, chaque bébé étant unique. Observez votre
-                    bébé pour ajuster ces recommandations en fonction de son besoin de
-                    sommeil. Besoin d'autre chose?
-                  </Text>
-                )}
               </View>
             </View>
           ))}
 
-          {/* Suggested Questions */}
+          {isSending && (
+            <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: 16 }}>
+              <View
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 18,
+                  backgroundColor: THEME.card,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginRight: 12,
+                  overflow: 'hidden',
+                }}
+              >
+                <Image source={require('../../assets/Kumo-logo.png')} style={{ width: 28, height: 28 }} />
+              </View>
+              <View
+                style={{
+                  backgroundColor: THEME.botBubble,
+                  borderRadius: 16,
+                  padding: 14,
+                  maxWidth: '80%',
+                }}
+              >
+                <Text style={{ fontSize: 14, color: THEME.muted }}>Kumo ecrit...</Text>
+              </View>
+            </View>
+          )}
+
           {showSuggestions && (
             <View style={{ marginTop: 8, gap: 10 }}>
-              {SUGGESTED_QUESTIONS.map((question, index) => (
+              {SUGGESTED_QUESTIONS.map((question) => (
                 <Pressable
-                  key={index}
+                  key={question}
                   onPress={() => handleSuggestionPress(question)}
                   style={({ pressed }) => ({
                     backgroundColor: THEME.card,
@@ -326,7 +263,6 @@ export function ChatScreen() {
           )}
         </ScrollView>
 
-        {/* Input Area */}
         <View
           style={{
             backgroundColor: THEME.bg,
@@ -350,7 +286,7 @@ export function ChatScreen() {
             <TextInput
               value={inputText}
               onChangeText={setInputText}
-              placeholder="Écrivez votre message..."
+              placeholder="Ecrivez votre message..."
               placeholderTextColor={THEME.muted}
               style={{
                 flex: 1,
@@ -360,24 +296,25 @@ export function ChatScreen() {
                 maxHeight: 100,
               }}
               multiline
-              maxLength={500}
+              maxLength={800}
               returnKeyType="send"
               blurOnSubmit={false}
               onSubmitEditing={() => {
-                if (inputText.trim()) {
+                if (inputText.trim() && !isSending) {
                   handleSendMessage();
                 }
               }}
             />
+
             <Pressable
               onPress={() => handleSendMessage()}
-              disabled={!inputText.trim()}
+              disabled={!inputText.trim() || isSending}
               style={({ pressed }) => ({
                 marginLeft: 8,
                 width: 36,
                 height: 36,
                 borderRadius: 18,
-                backgroundColor: inputText.trim() ? THEME.primary : THEME.line,
+                backgroundColor: inputText.trim() && !isSending ? THEME.primary : THEME.line,
                 alignItems: 'center',
                 justifyContent: 'center',
                 opacity: pressed ? 0.7 : 1,
@@ -386,7 +323,7 @@ export function ChatScreen() {
               <SFIcon
                 name="paperplane.fill"
                 size={18}
-                color={inputText.trim() ? THEME.card : THEME.muted}
+                color={inputText.trim() && !isSending ? THEME.card : THEME.muted}
               />
             </Pressable>
           </View>
