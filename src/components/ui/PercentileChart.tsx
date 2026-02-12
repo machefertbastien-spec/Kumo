@@ -1,6 +1,6 @@
 /**
  * PercentileChart - OMS Percentile Growth Chart
- * Interactive chart showing WHO percentile curves (3rd, 15th) with baby measurements
+ * Interactive chart showing WHO percentile curves with baby measurements
  * Scrollable horizontally for detailed view
  */
 
@@ -20,11 +20,56 @@ const THEME = {
   muted: '#7A6A60',
   line: '#EFE7E1',
   primary: '#D48A63',
-  p3: '#E8A87C',      // Percentile 3 - orange clair
-  p15: '#C5D4B5',     // Percentile 15 - vert clair
-  p50: '#9FB59B',     // Percentile 50 - vert
+  p3_97: '#BC1F3C',
+  p5_95: '#E56B3F',
+  p10_90: '#F1A64D',
+  p25_75: '#79C56A',
+  p50: '#2A9A62',
   measurement: '#D48A63', // Points de mesure - terracotta
 };
+
+const PERCENTILE_CURVES: Array<{
+  key: keyof Bands;
+  percentile: number;
+  color: string;
+  strokeWidth?: number;
+}> = [
+  { key: 'p3', percentile: 3, color: THEME.p3_97 },
+  { key: 'p5', percentile: 5, color: THEME.p5_95 },
+  { key: 'p10', percentile: 10, color: THEME.p10_90 },
+  { key: 'p25', percentile: 25, color: THEME.p25_75 },
+  { key: 'p50', percentile: 50, color: THEME.p50, strokeWidth: 2.5 },
+  { key: 'p75', percentile: 75, color: THEME.p25_75 },
+  { key: 'p90', percentile: 90, color: THEME.p10_90 },
+  { key: 'p95', percentile: 95, color: THEME.p5_95 },
+  { key: 'p97', percentile: 97, color: THEME.p3_97 },
+];
+
+const PERCENTILE_LEGEND = [
+  { label: '3/97 %', color: THEME.p3_97 },
+  { label: '5/95 %', color: THEME.p5_95 },
+  { label: '10/90 %', color: THEME.p10_90 },
+  { label: '25/75 %', color: THEME.p25_75 },
+  { label: '50 %', color: THEME.p50 },
+];
+
+function interpolateBandValue(points: Array<{ day: number; value: number }>, day: number): number | null {
+  if (!points.length) return null;
+  const sorted = points.slice().sort((a, b) => a.day - b.day);
+  if (day <= sorted[0].day) return sorted[0].value;
+  if (day >= sorted[sorted.length - 1].day) return sorted[sorted.length - 1].value;
+
+  for (let i = 1; i < sorted.length; i++) {
+    const prev = sorted[i - 1];
+    const next = sorted[i];
+    if (day <= next.day) {
+      const ratio = (day - prev.day) / (next.day - prev.day);
+      return prev.value + (next.value - prev.value) * ratio;
+    }
+  }
+
+  return null;
+}
 
 interface Measurement {
   id: string;
@@ -37,6 +82,7 @@ interface PercentileChartProps {
   sex: Sex;
   metric: Metric;
   birthDateISO: string;
+  onEditMeasurement?: (measurementId: string) => void;
 }
 
 interface SelectedPoint {
@@ -51,7 +97,8 @@ export function PercentileChart({
   measurements, 
   sex, 
   metric, 
-  birthDateISO 
+  birthDateISO,
+  onEditMeasurement,
 }: PercentileChartProps) {
   const [selectedPoint, setSelectedPoint] = useState<SelectedPoint | null>(null);
   const [zoomLevel, setZoomLevel] = useState<1 | 2 | 3>(1); // 1x, 2x, 3x zoom
@@ -83,15 +130,17 @@ export function PercentileChart({
   // Calculate value range from bands
   const valueRange = useMemo(() => {
     if (!bands) return { min: 45, max: 85 }; // Default for length
-    
-    const p3Values = bands.p3.filter(p => p.day <= maxDay).map(p => p.value);
-    const p15Values = bands.p15.filter(p => p.day <= maxDay).map(p => p.value);
+
+    const bandValues = PERCENTILE_CURVES.flatMap(({ key }) => {
+      const points = bands[key] ?? [];
+      return points.filter((p) => p.day <= maxDay).map((p) => p.value);
+    });
     const measurementValues = measurements.map(m => m.value);
-    
-    const allValues = [...p3Values, ...p15Values, ...measurementValues];
+
+    const allValues = [...bandValues, ...measurementValues];
     const min = Math.min(...allValues) - 2;
     const max = Math.max(...allValues) + 2;
-    
+
     return { min, max };
   }, [bands, measurements]);
 
@@ -128,23 +177,41 @@ export function PercentileChart({
   // Calculate percentile for a measurement
   const getPercentile = (value: number, ageDays: number): number => {
     if (!bands) return 50;
-    
-    const p3Point = bands.p3.find(p => p.day === Math.round(ageDays));
-    const p15Point = bands.p15.find(p => p.day === Math.round(ageDays));
-    const p50Point = bands.p50?.find(p => p.day === Math.round(ageDays));
-    
-    if (!p3Point || !p15Point) return 50;
-    
-    // Simple linear interpolation
-    if (value <= p3Point.value) return 3;
-    if (value <= p15Point.value) {
-      const ratio = (value - p3Point.value) / (p15Point.value - p3Point.value);
-      return 3 + ratio * 12;
+
+    const anchors = PERCENTILE_CURVES
+      .map(({ key, percentile }) => ({
+        percentile,
+        value: interpolateBandValue(bands[key] ?? [], ageDays),
+      }))
+      .filter((item): item is { percentile: number; value: number } => item.value !== null)
+      .sort((a, b) => a.value - b.value);
+
+    if (anchors.length < 2) return 50;
+
+    if (value <= anchors[0].value) {
+      const next = anchors[1];
+      const span = Math.max(0.001, next.value - anchors[0].value);
+      const pSpan = next.percentile - anchors[0].percentile;
+      return Math.max(0, anchors[0].percentile - ((anchors[0].value - value) / span) * pSpan);
     }
-    if (p50Point && value <= p50Point.value) {
-      const ratio = (value - p15Point.value) / (p50Point.value - p15Point.value);
-      return 15 + ratio * 35;
+
+    if (value >= anchors[anchors.length - 1].value) {
+      const prev = anchors[anchors.length - 2];
+      const last = anchors[anchors.length - 1];
+      const span = Math.max(0.001, last.value - prev.value);
+      const pSpan = last.percentile - prev.percentile;
+      return Math.min(100, last.percentile + ((value - last.value) / span) * pSpan);
     }
+
+    for (let i = 1; i < anchors.length; i++) {
+      const low = anchors[i - 1];
+      const high = anchors[i];
+      if (value <= high.value) {
+        const ratio = (value - low.value) / (high.value - low.value || 1);
+        return low.percentile + ratio * (high.percentile - low.percentile);
+      }
+    }
+
     return 50;
   };
 
@@ -278,42 +345,16 @@ export function PercentileChart({
               />
             ))}
 
-            {/* Percentile 3 curve */}
-            <Path
-              d={createPath(bands.p3)}
-              stroke={THEME.p3}
-              strokeWidth="2"
-              fill="none"
-              strokeDasharray="5,3"
-            />
-
-            {/* Percentile 15 curve */}
-            <Path
-              d={createPath(bands.p15)}
-              stroke={THEME.p15}
-              strokeWidth="2"
-              fill="none"
-            />
-
-            {/* Percentile labels on right */}
-            <SvgText
-              x={chartWidth - padding.right + 5}
-              y={scaleY(bands.p3.find(p => p.day === 365)?.value || 0) + 4}
-              fontSize="10"
-              fill={THEME.p3}
-              fontWeight="600"
-            >
-              3%
-            </SvgText>
-            <SvgText
-              x={chartWidth - padding.right + 5}
-              y={scaleY(bands.p15.find(p => p.day === 365)?.value || 0) + 4}
-              fontSize="10"
-              fill={THEME.p15}
-              fontWeight="600"
-            >
-              15%
-            </SvgText>
+            {/* OMS percentile curves */}
+            {PERCENTILE_CURVES.map(({ key, color, strokeWidth = 2 }) => (
+              <Path
+                key={`band-${String(key)}`}
+                d={createPath(bands[key] ?? [])}
+                stroke={color}
+                strokeWidth={String(strokeWidth)}
+                fill="none"
+              />
+            ))}
 
             {/* Y-axis labels */}
             {yTicks.map((value, i) => (
@@ -429,32 +470,25 @@ export function PercentileChart({
         </Pressable>
       </ScrollView>
 
-      {/* Legend */}
+            {/* Legend */}
       <View style={{ 
         flexDirection: 'row', 
         justifyContent: 'center', 
-        gap: 16, 
+        gap: 12, 
         marginTop: 12,
         flexWrap: 'wrap',
       }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-          <View style={{ 
-            width: 16, 
-            height: 3, 
-            backgroundColor: THEME.p3,
-            borderRadius: 2,
-          }} />
-          <Text style={{ fontSize: 11, color: THEME.muted }}>3ᵉ percentile</Text>
-        </View>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-          <View style={{ 
-            width: 16, 
-            height: 3, 
-            backgroundColor: THEME.p15,
-            borderRadius: 2,
-          }} />
-          <Text style={{ fontSize: 11, color: THEME.muted }}>15ᵉ percentile</Text>
-        </View>
+        {PERCENTILE_LEGEND.map((item) => (
+          <View key={item.label} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <View style={{ 
+              width: 16, 
+              height: 3, 
+              backgroundColor: item.color,
+              borderRadius: 2,
+            }} />
+            <Text style={{ fontSize: 11, color: THEME.muted }}>{item.label}</Text>
+          </View>
+        ))}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
           <View style={{ 
             width: 10, 
@@ -477,6 +511,27 @@ export function PercentileChart({
         }}>
           Touchez un point pour voir les détails
         </Text>
+      )}
+
+      {/* Edit action */}
+      {selectedPoint && onEditMeasurement && (
+        <Pressable
+          onPress={() => onEditMeasurement(selectedPoint.measurement.id)}
+          style={({ pressed }) => ({
+            marginTop: 10,
+            alignSelf: 'center',
+            paddingVertical: 9,
+            paddingHorizontal: 14,
+            borderRadius: 14,
+            borderWidth: 1,
+            borderColor: THEME.line,
+            backgroundColor: pressed ? THEME.line : THEME.bg,
+          })}
+        >
+          <Text style={{ fontSize: 12, fontWeight: '700', color: THEME.text }}>
+            Modifier cette mesure
+          </Text>
+        </Pressable>
       )}
 
       {/* Scroll hint when zoomed */}

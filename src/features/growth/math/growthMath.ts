@@ -150,9 +150,15 @@ export function percentileFromZ(z: number): number {
  */
 export const Z_SCORES = {
   p3: -1.8807936081512506,   // 3rd percentile
+  p5: -1.6448536269514722,   // 5th percentile
+  p10: -1.2815515655446004,  // 10th percentile
   p15: -1.0364333894937896,  // 15th percentile
+  p25: -0.6744897501960817,  // 25th percentile
   p50: 0,                    // 50th percentile (median)
+  p75: 0.6744897501960817,   // 75th percentile
   p85: 1.0364333894937896,   // 85th percentile
+  p90: 1.2815515655446004,   // 90th percentile
+  p95: 1.6448536269514722,   // 95th percentile
   p97: 1.8807936081512506,   // 97th percentile
 } as const;
 

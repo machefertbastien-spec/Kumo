@@ -1,7 +1,7 @@
 /**
  * Generate Growth Percentile Bands
  * 
- * Reads LMS JSON files and pre-calculates P3, P15, P50, P85, P97 bands
+ * Reads LMS JSON files and pre-calculates percentile bands
  * for efficient chart rendering
  * 
  * Usage: npm run growth:bands
@@ -12,9 +12,15 @@ const path = require('path');
 
 const Z_SCORES = {
   p3: -1.8807936081512506,
+  p5: -1.6448536269514722,
+  p10: -1.2815515655446004,
   p15: -1.0364333894937896,
+  p25: -0.6744897501960817,
   p50: 0,
+  p75: 0.6744897501960817,
   p85: 1.0364333894937896,
+  p90: 1.2815515655446004,
+  p95: 1.6448536269514722,
   p97: 1.8807936081512506,
 };
 
@@ -38,13 +44,7 @@ function xFromLMS(z, { L, M, S }) {
  * Generate bands from LMS data
  */
 function generateBands(lmsByDay) {
-  const bands = {
-    p3: [],
-    p15: [],
-    p50: [],
-    p85: [],
-    p97: [],
-  };
+  const bands = Object.fromEntries(Object.keys(Z_SCORES).map((key) => [key, []]));
 
   Object.entries(lmsByDay).forEach(([dayStr, lms]) => {
     const day = parseInt(dayStr, 10);

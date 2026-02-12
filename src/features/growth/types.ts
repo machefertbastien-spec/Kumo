@@ -29,9 +29,15 @@ export type LMSByDay = Record<number, LMS>; // day 0..365
 // Pre-calculated percentile bands for chart rendering
 export interface Bands {
   p3: Array<{ day: number; value: number }>;
+  p5: Array<{ day: number; value: number }>;
+  p10: Array<{ day: number; value: number }>;
   p15: Array<{ day: number; value: number }>;
+  p25: Array<{ day: number; value: number }>;
   p50: Array<{ day: number; value: number }>;
+  p75: Array<{ day: number; value: number }>;
   p85: Array<{ day: number; value: number }>;
+  p90: Array<{ day: number; value: number }>;
+  p95: Array<{ day: number; value: number }>;
   p97: Array<{ day: number; value: number }>;
 }
 
