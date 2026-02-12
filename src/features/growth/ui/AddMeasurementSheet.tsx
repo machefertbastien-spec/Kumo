@@ -216,6 +216,7 @@ export function AddMeasurementSheet({
             value={measuredAt}
             mode="date"
             display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+            themeVariant="light"
             onChange={(event, date) => {
               if (Platform.OS === 'android') {
                 setShowDatePicker(false);
@@ -228,6 +229,7 @@ export function AddMeasurementSheet({
               }
             }}
             maximumDate={new Date()}
+            locale="fr-FR"
           />
         )}
         
