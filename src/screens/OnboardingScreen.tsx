@@ -52,12 +52,12 @@ export default function OnboardingScreen() {
   const [month, setMonth] = useState("");
   const [year, setYear] = useState("");
   
-  // Step 2: PrÃ©nom et sexe (Ã  implÃ©menter)
+  // Step 2: Prénom et sexe (à implémenter)
   const [name, setName] = useState("");
   const [sex, setSex] = useState<'male' | 'female' | null>(null);
-  const [avatar, setAvatar] = useState("ðŸ‘¶");
+  const [avatar, setAvatar] = useState("👶");
   
-  // Step 3: Poids et taille (Ã  implÃ©menter)
+  // Step 3: Poids et taille (à implémenter)
   const [weight, setWeight] = useState("");
   const [height, setHeight] = useState("");
   
@@ -150,7 +150,7 @@ export default function OnboardingScreen() {
               textAlign: 'center',
               marginBottom: 32,
             }}>
-              Quelle est la date de naissance{'\n'}de votre bÃ©bÃ© ?
+              Quelle est la date de naissance{'\n'}de votre bébé ?
             </Text>
 
             <View style={{ 
@@ -276,7 +276,7 @@ export default function OnboardingScreen() {
             fontSize: 11,
             color: THEME.muted,
           }}>
-            Ces informations nous aident simplement Ã  mieux vous accompagner.
+            Ces informations nous aident simplement à mieux vous accompagner.
           </Text>
         </View>
       </View>
@@ -431,7 +431,7 @@ export default function OnboardingScreen() {
               resizeMode="contain"
             />
             <Text style={{ fontSize: 12, color: THEME.muted }}>
-              Naissance de votre bÃ©bÃ©
+              Naissance de votre bébé
             </Text>
           </View>
 
@@ -443,7 +443,7 @@ export default function OnboardingScreen() {
               textAlign: 'center',
               marginBottom: 32,
             }}>
-              Quelle est la taille{'\n'}de votre bÃ©bÃ© ?
+              Quelle est la taille{'\n'}de votre bébé ?
             </Text>
 
             <View style={{ alignItems: 'center' }}>
@@ -528,7 +528,7 @@ export default function OnboardingScreen() {
             fontSize: 11,
             color: THEME.muted,
           }}>
-            Ces informations nous aident simplement Ã  mieux vous accompagner.
+            Ces informations nous aident simplement à mieux vous accompagner.
           </Text>
         </View>
       </View>
@@ -556,7 +556,7 @@ export default function OnboardingScreen() {
               resizeMode="contain"
             />
             <Text style={{ fontSize: 12, color: THEME.muted }}>
-              Naissance de votre bÃ©bÃ©
+              Naissance de votre bébé
             </Text>
           </View>
 
@@ -568,7 +568,7 @@ export default function OnboardingScreen() {
               textAlign: 'center',
               marginBottom: 32,
             }}>
-              Quel est le poids{'\n'}de votre bÃ©bÃ© ?
+              Quel est le poids{'\n'}de votre bébé ?
             </Text>
 
             <View style={{ alignItems: 'center' }}>
@@ -653,7 +653,7 @@ export default function OnboardingScreen() {
             fontSize: 11,
             color: THEME.muted,
           }}>
-            Ces informations nous aident simplement Ã  mieux vous accompagner.
+            Ces informations nous aident simplement à mieux vous accompagner.
           </Text>
         </View>
       </View>
@@ -671,7 +671,7 @@ export default function OnboardingScreen() {
           resizeMode="contain"
         />
         <Text style={{ fontSize: 12, color: THEME.muted }}>
-          Naissance de votre bÃ©bÃ©
+          Naissance de votre bébé
         </Text>
       </View>
 
@@ -683,7 +683,7 @@ export default function OnboardingScreen() {
           textAlign: 'center',
           marginBottom: 32,
         }}>
-          Quel est le sexe de votre bÃ©bÃ© ?
+          Quel est le sexe de votre bébé ?
         </Text>
 
         <View style={{ gap: 12 }}>
@@ -725,7 +725,7 @@ export default function OnboardingScreen() {
               fontWeight: '600', 
               color: THEME.text,
             }}>
-              GarÃ§on
+              Garçon
             </Text>
           </Pressable>
         </View>
@@ -783,7 +783,7 @@ export default function OnboardingScreen() {
           fontSize: 11,
           color: THEME.muted,
         }}>
-          Ces informations nous aident simplement Ã  mieux vous accompagner.
+          Ces informations nous aident simplement à mieux vous accompagner.
         </Text>
       </View>
     </View>
@@ -800,7 +800,7 @@ export default function OnboardingScreen() {
           resizeMode="contain"
         />
         <Text style={{ fontSize: 12, color: THEME.muted }}>
-          Naissance de votre bÃ©bÃ©
+          Naissance de votre bébé
         </Text>
       </View>
 
@@ -812,7 +812,7 @@ export default function OnboardingScreen() {
           textAlign: 'center',
           marginBottom: 32,
         }}>
-          Et vous, qui Ãªtes-vous pour ce bÃ©bÃ© ?
+          Et vous, qui êtes-vous pour ce bébé ?
         </Text>
 
         <View style={{ gap: 12 }}>
@@ -994,7 +994,7 @@ export default function OnboardingScreen() {
               console.log('[Onboarding] Baby created with ID:', babyId);
               console.log('[Onboarding] Weight:', weightValue, 'Height:', heightValue);
               
-              // Sauvegarder les mesures initiales dans le systÃ¨me de croissance
+              // Sauvegarder les mesures initiales dans le système de croissance
               const measuredAt = birthDate.toISOString();
               if (weightValue) {
                 console.log('[Onboarding] Saving weight measurement...');
@@ -1031,7 +1031,7 @@ export default function OnboardingScreen() {
           fontSize: 11,
           color: THEME.muted,
         }}>
-          Ces informations nous aident simplement Ã  mieux vous accompagner.
+          Ces informations nous aident simplement à mieux vous accompagner.
         </Text>
       </View>
     </View>

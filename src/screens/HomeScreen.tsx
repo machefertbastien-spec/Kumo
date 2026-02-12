@@ -155,16 +155,16 @@ export function HomeScreen({ nowMs }: { nowMs: number }) {
     if (e.type === 'sleep') {
       const start = format(new Date(e.startTs ?? e.ts), 'HH:mm');
       const end = e.endTs ? format(new Date(e.endTs), 'HH:mm') : '...';
-      return `${start} → ${end}`;
+      return `${start} -> ${end}`;
     }
     if (e.type === 'feeding') {
       const time = format(new Date(e.ts), 'HH:mm');
-      return `${e.amountMl || 0} ml → il y a ${agoShort(e.ts, nowMs)}`;
+      return `${e.amountMl || 0} ml - il y a ${agoShort(e.ts, nowMs)}`;
     }
     if (e.type === 'diaper') {
       const label = diaperLabel(e.diaperType ?? 'mixed');
       const time = format(new Date(e.ts), 'HH:mm');
-      return `${label} � ${time}`;
+      return `${label} - ${time}`;
     }
     return format(new Date(e.ts), 'HH:mm');
   };
@@ -546,6 +546,7 @@ export function HomeScreen({ nowMs }: { nowMs: number }) {
     </SafeAreaView>
   );
 }
+
 
 
 
