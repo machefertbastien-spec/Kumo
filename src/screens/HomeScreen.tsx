@@ -42,6 +42,7 @@ import { calcSleepTotalBetween, diaperLabel } from '../utils/eventUtils';
 import { THEME } from '../constants/theme';
 
 const DAY_MS = 86400000;
+const RECENT_ACTIVITIES_LIMIT = 10;
 
 /**
  * Format sleep duration as hours and minutes
@@ -89,7 +90,7 @@ export function HomeScreen({ nowMs }: { nowMs: number }) {
   const randomArticles = useMemo(() => getRandomArticles(5), []);
 
   // Calculate today's time range
-  const todayStart = useMemo(() => startOfDay(new Date()).getTime(), []);
+  const todayStart = useMemo(() => startOfDay(new Date(nowMs)).getTime(), [nowMs]);
   const todayEnd = todayStart + DAY_MS;
 
   // Filter events for current baby
@@ -98,7 +99,10 @@ export function HomeScreen({ nowMs }: { nowMs: number }) {
     return events
       .filter((e) => !e.deletedAt && e.babyId === baby.id)
       .slice()
-      .sort((a, b) => b.ts - a.ts);
+      .sort((a, b) => {
+        if (b.ts !== a.ts) return b.ts - a.ts;
+        return (b.updatedAt ?? b.ts) - (a.updatedAt ?? a.ts);
+      });
   }, [events, baby]);
 
   // Filter events for today
@@ -128,9 +132,9 @@ export function HomeScreen({ nowMs }: { nowMs: number }) {
     return { sleepH, feedingMl, diapers };
   }, [todayEvents, todayStart, todayEnd]);
 
-  // Get recent activities (top 3)
+  // Get recent activities (top N)
   const recentActivities = useMemo(() => {
-    return todayEvents.slice(0, 3);
+    return todayEvents.slice(0, RECENT_ACTIVITIES_LIMIT);
   }, [todayEvents]);
 
   // Format activity label
@@ -201,7 +205,12 @@ export function HomeScreen({ nowMs }: { nowMs: number }) {
             })}
           >
             <Text style={{ fontSize: 32, marginBottom: 8 }}>☁️</Text>
-            <Text style={{ fontSize: 18, fontWeight: '800', color: THEME.card, marginBottom: 2 }}>
+            <Text
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.8}
+              style={{ fontSize: 18, fontWeight: '800', color: THEME.card, marginBottom: 2 }}
+            >
               Sommeil
             </Text>
             <Text style={{ fontSize: 16, fontWeight: '700', color: THEME.card }}>
@@ -221,7 +230,12 @@ export function HomeScreen({ nowMs }: { nowMs: number }) {
             })}
           >
             <Text style={{ fontSize: 32, marginBottom: 8 }}>🍼</Text>
-            <Text style={{ fontSize: 18, fontWeight: '800', color: THEME.card, marginBottom: 2 }}>
+            <Text
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.8}
+              style={{ fontSize: 18, fontWeight: '800', color: THEME.card, marginBottom: 2 }}
+            >
               Biberons
             </Text>
             <Text style={{ fontSize: 16, fontWeight: '700', color: THEME.card }}>
@@ -241,7 +255,12 @@ export function HomeScreen({ nowMs }: { nowMs: number }) {
             })}
           >
             <Text style={{ fontSize: 32, marginBottom: 8 }}>🧷</Text>
-            <Text style={{ fontSize: 18, fontWeight: '800', color: THEME.card, marginBottom: 2 }}>
+            <Text
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.8}
+              style={{ fontSize: 18, fontWeight: '800', color: THEME.card, marginBottom: 2 }}
+            >
               Couches
             </Text>
             <Text style={{ fontSize: 16, fontWeight: '700', color: THEME.card }}>
@@ -358,7 +377,16 @@ export function HomeScreen({ nowMs }: { nowMs: number }) {
                   marginBottom: 12,
                 }}
               >
-                <Text style={{ fontSize: 20 }}>{article.illustration}</Text>
+                {article.illustration.includes('.') || article.illustration.includes('-') ? (
+                  <SFIcon
+                    name={article.illustration}
+                    size={20}
+                    color={THEME.text}
+                    weight="semibold"
+                  />
+                ) : (
+                  <Text style={{ fontSize: 20 }}>{article.illustration}</Text>
+                )}
               </View>
               <Text
                 style={{
