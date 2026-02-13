@@ -12,11 +12,10 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "bundleIdentifier": "com.kumababy.app",
       "buildNumber": "1",
       "infoPlist": {
-        "NSUserTrackingUsageDescription": "This app uses notifications to remind you about baby care tasks.",
         "ITSAppUsesNonExemptEncryption": false
       }
     },
@@ -35,6 +34,9 @@
       "eas": {
         "projectId": "a04304f8-e7b2-498b-be9f-48df63694401"
       }
-    }
+    },
+    "plugins": [
+      "expo-font"
+    ]
   }
 }
