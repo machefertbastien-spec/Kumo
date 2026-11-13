@@ -40,6 +40,7 @@ import { calcSleepTotalBetween, diaperLabel } from '../utils/eventUtils';
 
 // Constants
 import { THEME } from '../constants/theme';
+import { captureTrackingEntrySaved } from '../analytics';
 
 const DAY_MS = 86400000;
 const RECENT_ACTIVITIES_LIMIT = 10;
@@ -482,6 +483,7 @@ export function HomeScreen({ nowMs }: { nowMs: number }) {
 
           // Add the event
           setEvents(prev => [...prev, sleepEvent]);
+          void captureTrackingEntrySaved();
           setShowAddSleepSheet(false);
         }}
       />
@@ -515,6 +517,7 @@ export function HomeScreen({ nowMs }: { nowMs: number }) {
 
           // Add the event
           setEvents(prev => [...prev, feedingEvent]);
+          void captureTrackingEntrySaved();
           setShowAddFeedingSheet(false);
         }}
       />
@@ -546,6 +549,7 @@ export function HomeScreen({ nowMs }: { nowMs: number }) {
 
           // Add the event
           setEvents(prev => [...prev, diaperEvent]);
+          void captureTrackingEntrySaved();
           setShowAddDiaperSheet(false);
         }}
       />

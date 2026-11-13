@@ -41,6 +41,7 @@ import {
 } from "date-fns";
 import { fr } from "date-fns/locale";
 import type { Settings as AppSettings, Toast as AppToast } from "./src/types";
+import { captureKumoEvent, captureTrackingEntrySaved } from "./src/analytics";
 
 // Growth Charts imports
 import { GrowthChartsScreen, AddMeasurementSheet } from './src/features/growth';
@@ -634,6 +635,10 @@ export default function App() {
   const [hydrated, setHydrated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
+  useEffect(() => {
+    captureKumoEvent('app opened');
+  }, []);
+
   // Loading screen timer (9 seconds to show full tagline animation)
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -750,6 +755,7 @@ export default function App() {
       deletedAt: null,
     };
     setEvents((prev) => [e, ...prev]);
+    void captureTrackingEntrySaved();
     requestReminderSheet("feeding", ts, e.id);
     showToastForEvent(e, { undoKind: "delete_event" });
   };
@@ -777,6 +783,7 @@ export default function App() {
       deletedAt: null,
     };
     setEvents((prev) => [e, ...prev]);
+    void captureTrackingEntrySaved();
     setDiaperSheetVisible(false);
     requestReminderSheet("diaper", ts, e.id);
     showToastForEvent(e, { undoKind: "delete_event" });
@@ -800,6 +807,7 @@ export default function App() {
       deletedAt: null,
     };
     setEvents((prev) => [e, ...prev]);
+    void captureTrackingEntrySaved();
     showToastForEvent(e, { undoKind: "delete_event" });
   };
 
@@ -810,6 +818,7 @@ export default function App() {
     setEvents((prev) =>
       prev.map((x) => (x.id === inProgressSleep.id ? { ...x, endTs: ts, updatedAt: ts } : x))
     );
+    void captureTrackingEntrySaved();
     requestReminderSheet("sleep_stop", ts, inProgressSleep.id);
     showToastForEvent(
       { ...inProgressSleep, endTs: ts, updatedAt: ts },
