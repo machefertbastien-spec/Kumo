@@ -23,6 +23,7 @@
     "production": {
       "autoIncrement": true,
       "env": {
+        "EXPO_PUBLIC_APP_ENVIRONMENT": "production",
         "RCT_NEW_ARCH_ENABLED": "0"
       },
       "ios": {
@@ -41,3 +42,4 @@
     }
   }
 }
+
