@@ -25,7 +25,13 @@ const getConfiguration = () => {
     apiKey,
     host,
     environment,
-    enabled: Boolean(apiKey && host && environment === 'preview' && consentGranted),
+    enabled: Boolean(
+      apiKey &&
+        host &&
+        environment &&
+        ['preview', 'production'].includes(environment) &&
+        consentGranted,
+    ),
   };
 };
 
@@ -69,10 +75,12 @@ const getClient = (): PostHog | null => {
   return client;
 };
 
-export const buildSafeEventProperties = () => ({
+export const buildSafeEventProperties = (
+  environment = getConfiguration().environment ?? 'unknown',
+) => ({
   app_id: APP_ID,
   app_platform: 'mobile',
-  app_environment: 'preview',
+  app_environment: environment,
   analytics_schema_version: ANALYTICS_SCHEMA_VERSION,
   app_version: Application.nativeApplicationVersion ?? 'unknown',
   platform: Platform.OS,
@@ -100,3 +108,4 @@ export const captureTrackingEntrySaved = async () => {
     // A local analytics marker failure must not affect the saved baby event.
   }
 };
+
